@@ -5,7 +5,7 @@
  * @description A simple file uploader for ShareX using Node.js and Express.
  * @license MIT
  */
-
+require('v8').setFlagsFromString('--max_old_space_size=4096');
 const config = require("./config.json");
 const version = require("./package.json").version;
 const PORT = config.port;
@@ -19,12 +19,15 @@ const app = express();
 const routes = require("./routes/index");
 const fileIndex = require("./routes/fileIndex");
 const colors = require("colors");
+const WebSocket = require('ws');
+
 
 app.disable('x-powered-by');
-app.use(bodyParser.json());
+app.use(bodyParser.json({ limit: '10mb' }));
 app.use(
   bodyParser.urlencoded({
     extended: true,
+    limit: '10mb'
   })
 );
 
@@ -92,6 +95,34 @@ if (!config.ssl.useSSL) {
     app
   );
 }
+
+const wss = new WebSocket.Server({ server });
+
+// Store active uploads with progress information
+const activeUploads = new Map();
+
+// WebSocket connection handler
+wss.on('connection', (ws) => {
+  ws.on('message', (message) => {
+    try {
+      const data = JSON.parse(message);
+      
+      // Client requesting to track a specific upload
+      if (data.type === 'track' && data.uploadId) {
+        ws.uploadId = data.uploadId;
+        
+        // Send initial progress if available
+        if (activeUploads.has(data.uploadId)) {
+          ws.send(JSON.stringify(activeUploads.get(data.uploadId)));
+        }
+      }
+    } catch (e) {
+      console.error('WebSocket message error:', e);
+    }
+  });
+});
+
+server.timeout = 3600000;
 
 server.listen(PORT, () => {
   console.log(colors.cyan("Running on version " + version));

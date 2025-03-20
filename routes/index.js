@@ -9,6 +9,7 @@ const middleware = require("../libs/middleware.js");
 const multer = require("multer");
 const randomString = require("random-string");
 const { format } = require("date-fns");
+const handleLargeUpload = require("../libs/handleLargeFile.js");
 
 /**
  * Multer storage configuration
@@ -131,11 +132,14 @@ router.get("/f/:filename", function (req, res) {
 router.post(
   "/upload",
   middleware.keyRequired,
+  // First try the large file handler
+  handleLargeUpload,
+  // Then fall back to multer for normal-sized files
   upload.single("file"),
   function (req, res) {
+    // This part can remain the same as your existing code
     const key = req.body.key;
 
-    // Check if file was uploaded
     if (!req.file) {
       logger.info(
         "No file was sent, aborting... (" +
@@ -164,6 +168,7 @@ router.post(
       config.serverUrl + "/delete?filename=" + fileName + "&key=" + key
     );
   },
+  // Keep your error handler
   function (err, req, res, next) {
     // Error handler
     if (err.message === "Invalid file extension") {
