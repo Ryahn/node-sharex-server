@@ -73,6 +73,7 @@ You can configure the server in the `config.json` file. Options:
 * `pagination`: Pagination options
     * `itemsPerPage`: The number of items per page.
 * `fileSizeLimit`: You can set the file size limit (in bytes) here. Example: You want to set the limit to 100 mb. That means we have to change the value to 100 (MB) \* 1024 (kB) \* 1024 (B) = 104857600 (B).
+* `largeFileSizeLimit`: The size limit for large files (in bytes).
 * `fileNameLength`: The length of the generated file names.
 * `useLocalStaticServe`: Use the express.static middleware to serve the uploaded files.
 * `staticFileServerUrl`: The url that should be sent to the ShareX client.
@@ -85,6 +86,10 @@ You can configure the server in the `config.json` file. Options:
 * `fileExtensionCheck`: Check the extension of uploaded files
     * `enabled`: Is this feature enabled?
     * `extensionsAllowed`: The extensions which are whitelisted (if the feature is enabled).
+
+# Large File Uploads
+You must have nginx configured to handle large file uploads.
+You you will need possibly 4GB or more of RAM to handle large file uploads.
 
 # ShareX Configuration
 Got to http(s)://<server_url>/config to get the ShareX configuration.
