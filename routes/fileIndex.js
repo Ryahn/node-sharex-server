@@ -22,6 +22,12 @@ router.get("/", (req, res) => {
       // Process each file to determine its type
       const allFiles = files
           .filter(file => {
+              // Skip directories/subfolders
+              const filePath = path.join(uploadsDir, file);
+              const isDirectory = fs.statSync(filePath).isDirectory();
+              if (isDirectory) return false;
+              
+              // Check file extensions if enabled
               if (config.fileExtensionCheck && config.fileExtensionCheck.enabled) {
                   const extension = path.extname(file).toLowerCase();
                   return config.fileExtensionCheck.extensionsAllowed.includes(extension);
