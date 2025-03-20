@@ -1,4 +1,7 @@
-# node-sharex-server
+## Personal Image Hosting
+
+This is based off of [node-sharex-server](https://github.com/ravi0lii/node-sharex-server)
+
 - [What is this](#what-is-this)
 - [Installation](#installation)
 - [Configuration](#configuration)
@@ -12,14 +15,60 @@ node-sharex-server is a [ShareX](https://getsharex.com) upload server which is e
     * Allowing only configured file extensions (for more safety)
 
 # Installation
-**NOTE:** You need git (to clone this repo) and nodejs (with npm) to run this program.  
-First we have to clone this repo. You can do that by typing `git clone git@github.com:ravi0lii/node-sharex-server.git` (for ssh) or `git clone https://github.com/ravi0lii/node-sharex-server.git` (for https). After going into the directory, we have to install the dependencies. Type `npm install` to do so. You can start node-sharex-server now by typing `node app.js`. You could use e.g. pm2 to run node-sharex-server in the background.
+**NOTE:** You must have node installed. I personally like using [nvm](https://github.com/nvm-sh/nvm) to install node.
+
+### Step 1:
+Clone repository
+```bash
+git clone https://github.com/Lunarmist/overlord.lordainz.xyz.git
+```
+
+### Step 2:
+Install dependencies
+```bash
+npm install
+```
+
+### Step 3:
+Generate key
+```bash
+node gen_key.js
+```
+
+### Step 4:
+Run server
+```bash
+node app.js
+```
+
+## Step 5 (Optional)
+If you want to use SSL, you can generate a self-signed certificate and private key.
+```bash
+openssl genrsa -out private-key.pem 2048
+openssl req -new -key private-key.pem -out csr.pem
+```
+
+Update config.json with the following:
+```json
+"ssl": {
+    "useSSL": true,
+    "privateKeyPath": "private-key.pem",
+    "certificatePath": "csr.pem"
+}
+```
+
+## Step 6 (Optional)
+If you want to use PM2 to run the server, you can use the following command:
+```bash
+pm2 start --name "image_host" app.js
+```
 
 # Configuration
 **NOTE:** To make changes effective, you have to restart the server!  
 You can configure the server in the `config.json` file. Options:
 * `port`: The port the server should listen on.
-* `keys`: You can add keys (authentication tokens) here.
+* `name`: The name of the server.
+* `keys`: You can add keys (authentication tokens) here. Use gen_key.js to generate a key.
 * `fileSizeLimit`: You can set the file size limit (in bytes) here. Example: You want to set the limit to 100 mb. That means we have to change the value to 100 (MB) \* 1024 (kB) \* 1024 (B) = 104857600 (B).
 * `fileNameLength`: The length of the generated file names.
 * `useLocalStaticServe`: Use the express.static middleware to serve the uploaded files.
@@ -34,24 +83,16 @@ You can configure the server in the `config.json` file. Options:
     * `enabled`: Is this feature enabled?
     * `extensionsAllowed`: The extensions which are whitelisted (if the feature is enabled).
 
-# ShareX client configuration
-**NOTE:** Replace *UPLOADER\_NAME*, *SERVER\_URL* and *YOUR\_KEY* with your own values!
-```json
-{
-    "Name": "UPLOADER_NAME",
-    "DestinationType": "ImageUploader, FileUploader",
-    "RequestType": "POST",
-    "RequestURL": "SERVER_URL/upload",
-    "FileFormName": "file",
-    "Arguments": {
-        "key": "YOUR_KEY"
-    },
-    "ResponseType": "Text",
-    "URL": "$json:file.url$",
-    "ThumbnailURL": "",
-    "DeletionURL": "$json:file.delete_url$"
-}
-```
+# ShareX Configuration
+Got to http(s)://<server_url>/config to get the ShareX configuration.
 
 # License
 [MIT](/LICENSE)
+
+
+
+
+
+
+
+
