@@ -13,10 +13,12 @@ const logger = require("silly-logger");
 const path = require("path");
 const fs = require("fs");
 const exphbs = require("express-handlebars");
+const hbs = require('hbs');
 const bodyParser = require("body-parser");
 const express = require("express");
 const app = express();
 const routes = require("./routes/index");
+const fileIndex = require("./routes/fileIndex");
 const colors = require("colors");
 
 app.disable('x-powered-by');
@@ -42,8 +44,22 @@ app.engine('hbs', exphbs.engine({
   extname: '.hbs',
   defaultLayout: 'main',
   layoutsDir: path.join(__dirname, 'views/layouts'),
-  partialsDir: path.join(__dirname, 'views/partials')
+  partialsDir: path.join(__dirname, 'views/partials'),
+  helpers: {
+    eq: function(a, b) {
+        return a === b;
+    }
+}
 }));
+
+hbs.registerHelper('add', function(a, b) {
+  return a + b;
+});
+
+hbs.registerHelper('subtract', function(a, b) {
+  return a - b;
+});
+
 app.set('view engine', 'hbs');
 app.set('views', path.join(__dirname, 'views'));
 
@@ -51,6 +67,10 @@ app.set('views', path.join(__dirname, 'views'));
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use("/", routes);
+
+if (config.useFileIndex) {
+  app.use("/files", fileIndex);
+}
 
 // Add graceful shutdown
 process.on('SIGTERM', () => {

@@ -1,0 +1,56 @@
+<div class="container file-index">
+    <div class="content">
+        <h1>File Index</h1>
+        <h2>for Overlord - Lord Ainz</h2>
+        
+        <div class="file-grid">
+            {{#each files}}
+                <div class="file-card">
+                    <div class="thumbnail">
+                        {{#if (eq this.type "image")}}
+                            <img src="{{this.path}}" alt="{{this.name}}">
+                        {{else if (eq this.type "video")}}
+                            <img src="/img/video-placeholder.png" alt="Video file">
+                        {{else}}
+                            <img src="/img/image-placeholder.png" alt="File">
+                        {{/if}}
+                    </div>
+                    <div class="file-info">
+                        <p class="file-name">{{this.name}}</p>
+                        <p class="file-meta">{{this.size}} • {{this.date}}</p>
+                    </div>
+                    <div class="file-actions">
+                        <a href="{{this.path}}" target="_blank" class="view-btn">View</a>
+                        <a href="{{this.path}}" download="{{this.name}}" class="download-btn">Download</a>
+                    </div>
+                </div>
+            {{else}}
+                <div class="no-files">
+                    <p>No files found. Upload some files to see them here.</p>
+                </div>
+            {{/each}}
+        </div>
+        
+        {{#if pagination}}
+        <div class="pagination">
+            {{#if pagination.hasPrevPage}}
+                <a href="?page={{subtract pagination.currentPage 1}}" class="page-btn">&laquo; Previous</a>
+            {{else}}
+                <span class="page-btn disabled">&laquo; Previous</span>
+            {{/if}}
+            
+            <span class="page-info">Page {{pagination.currentPage}} of {{pagination.totalPages}}</span>
+            
+            {{#if pagination.hasNextPage}}
+                <a href="?page={{add pagination.currentPage 1}}" class="page-btn">Next &raquo;</a>
+            {{else}}
+                <span class="page-btn disabled">Next &raquo;</span>
+            {{/if}}
+        </div>
+        {{/if}}
+        
+        <div class="navigation">
+            <a href="/" class="nav-btn">Back to Home</a>
+        </div>
+    </div>
+</div> 

@@ -69,6 +69,9 @@ You can configure the server in the `config.json` file. Options:
 * `port`: The port the server should listen on.
 * `name`: The name of the server.
 * `keys`: You can add keys (authentication tokens) here. Use gen_key.js to generate a key.
+* `useFileIndex`: Enable the file index page.
+* `pagination`: Pagination options
+    * `itemsPerPage`: The number of items per page.
 * `fileSizeLimit`: You can set the file size limit (in bytes) here. Example: You want to set the limit to 100 mb. That means we have to change the value to 100 (MB) \* 1024 (kB) \* 1024 (B) = 104857600 (B).
 * `fileNameLength`: The length of the generated file names.
 * `useLocalStaticServe`: Use the express.static middleware to serve the uploaded files.

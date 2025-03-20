@@ -6,6 +6,10 @@
     "fileSizeLimit": 59999999,
     "fileNameLength": 8,
     "useLocalStaticServe": true,
+    "useFileIndex": true,
+    "pagination": {
+        "itemsPerPage": 12
+    },
     "staticFileServerUrl": "http://localhost:3854/f/",
     "serverUrl": "http://localhost:3854",
     "uploadDirectory": "uploads/",
