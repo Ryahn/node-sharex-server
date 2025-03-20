@@ -4,6 +4,7 @@
         
     },
     "fileSizeLimit": 59999999,
+    "largeFileSizeLimit": 5368709120,
     "fileNameLength": 8,
     "useLocalStaticServe": true,
     "useFileIndex": true,
