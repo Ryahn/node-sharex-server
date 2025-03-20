@@ -60,5 +60,6 @@ typings/
 # Uploads directory
 uploads/
 
-# config.json
+# Configuration files
 config.json
+/config.json
