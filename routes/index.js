@@ -132,13 +132,30 @@ router.get("/f/:filename", function (req, res) {
 router.post(
   "/upload",
   middleware.keyRequired,
-  // First try the large file handler
   handleLargeUpload,
-  // Then fall back to multer for normal-sized files
   upload.single("file"),
   function (req, res) {
-    // This part can remain the same as your existing code
-    const key = req.body.key;
+    // Double-check key after file upload (in case it was in the form data)
+    if (!req.locals || !req.locals.username) {
+      const key = req.body.key;
+      
+      // If we have a key in the body but it wasn't validated earlier
+      if (key) {
+        const username = require('../libs/middleware').keyToUsername[key];
+        if (!username) {
+          logger.auth(`Failed authentication with key ${key.substr(0, 3)}...`);
+          return response.invalidKey(res);
+        }
+        
+        // Set locals if not already set
+        req.locals = req.locals || {};
+        req.locals.shortKey = key.substr(0, 3) + '...';
+        req.locals.username = username;
+      } else {
+        logger.auth('No key provided in request body');
+        return response.emptyKey(res);
+      }
+    }
 
     if (!req.file) {
       logger.info(
@@ -165,10 +182,9 @@ router.post(
     response.uploaded(
       res,
       config.staticFileServerUrl + fileName,
-      config.serverUrl + "/delete?filename=" + fileName + "&key=" + key
+      config.serverUrl + "/delete?filename=" + fileName + "&key=" + req.body.key
     );
   },
-  // Keep your error handler
   function (err, req, res, next) {
     // Error handler
     if (err.message === "Invalid file extension") {
