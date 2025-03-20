@@ -89,6 +89,9 @@ You can configure the server in the `config.json` file. Options:
 # ShareX Configuration
 Got to http(s)://<server_url>/config to get the ShareX configuration.
 
+## Nginx Configuration
+See [Nginx Config](/nginx.conf)
+
 # License
 [MIT](/LICENSE)
 
