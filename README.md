@@ -97,6 +97,9 @@ Got to http(s)://<server_url>/config to get the ShareX configuration.
 ## Nginx Configuration
 See [Nginx Config](/nginx.conf)
 
+## Docker
+See [Docker](/DOCKER.md)
+
 # License
 [MIT](/LICENSE)
 

@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  sharex-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sharex-server
+    restart: unless-stopped
+    ports:
+      - "3854:3854"
+    volumes:
+      - ./uploads:/app/uploads
+      - ./config.json:/app/config.json
+    environment:
+      - NODE_ENV=production
+    command: node app.js
