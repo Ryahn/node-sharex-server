@@ -9,7 +9,7 @@ const middleware = require("../libs/middleware.js");
 const multer = require("multer");
 const randomString = require("random-string");
 const { format } = require("date-fns");
-const handleLargeUpload = require("../libs/handleLargeFile.js");
+const { handleLargeUpload } = require("../libs/handleLargeFile.js");
 
 /**
  * Multer storage configuration
