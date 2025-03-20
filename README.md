@@ -20,7 +20,7 @@ node-sharex-server is a [ShareX](https://getsharex.com) upload server which is e
 ### Step 1:
 Clone repository
 ```bash
-git clone https://github.com/Lunarmist/overlord.lordainz.xyz.git
+git clone https://github.com/Ryahn/node-sharex-server.git
 ```
 
 ### Step 2:
