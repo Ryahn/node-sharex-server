@@ -1,6 +1,6 @@
 const response = require('./response.js');
 const logger = require('silly-logger');
-const config = require('./config.json');
+const config = require('../config.json');
 
 const keyToUsername = {};
 Object.entries(config.keys).forEach(([user, apiKey]) => {
