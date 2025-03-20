@@ -13,7 +13,6 @@ const logger = require("silly-logger");
 const path = require("path");
 const fs = require("fs");
 const exphbs = require("express-handlebars");
-const hbs = require('hbs');
 const bodyParser = require("body-parser");
 const express = require("express");
 const app = express();
@@ -48,17 +47,15 @@ app.engine('hbs', exphbs.engine({
   helpers: {
     eq: function(a, b) {
         return a === b;
+    },
+    add: function(a, b) {
+      return a + b;
+    },
+    subtract: function(a, b) {
+      return a - b;
     }
-}
+  }
 }));
-
-hbs.registerHelper('add', function(a, b) {
-  return a + b;
-});
-
-hbs.registerHelper('subtract', function(a, b) {
-  return a - b;
-});
 
 app.set('view engine', 'hbs');
 app.set('views', path.join(__dirname, 'views'));
