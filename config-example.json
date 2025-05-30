@@ -1,5 +1,6 @@
 {
     "port": 3854,
+    "name": "TEST",
     "keys": {
         
     },
@@ -8,11 +9,8 @@
     "fileNameLength": 8,
     "useLocalStaticServe": true,
     "useFileIndex": true,
-    "pagination": {
-        "itemsPerPage": 12
-    },
-    "staticFileServerUrl": "http://localhost:3854/f/",
-    "serverUrl": "http://localhost:3854",
+    "staticFileServerUrl": "https://imagehost.test/f/",
+    "serverUrl": "https://imagehost.test",
     "uploadDirectory": "uploads/",
     "ssl": {
         "useSSL": false,
@@ -20,7 +18,7 @@
         "certificatePath": ""
     },
     "fileExtensionCheck": {
-        "enabled": false,
+        "enabled": true,
         "extensionsAllowed": [
             ".png",
             ".jpg",
@@ -33,5 +31,8 @@
             ".avif",
             ".webp"
         ]
+    },
+    "pagination": {
+        "itemsPerPage": 12
     }
 }
