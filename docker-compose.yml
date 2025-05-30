@@ -2,9 +2,7 @@ version: '3.8'
 
 services:
   sharex-server:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: ryahn/sharex-node-server:1.0.0
     container_name: sharex-server
     restart: unless-stopped
     ports:

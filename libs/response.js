@@ -1,105 +1,229 @@
 /**
  * Response utility functions for the ShareX upload server
+ * Optimized with consistent error handling and response formatting
  */
 
-// Base response function
-const basicResponse = (res, status, json) => {
-  res.status(status).json(json);
+// HTTP status codes constants
+const HTTP_STATUS = Object.freeze({
+    OK: 200,
+    BAD_REQUEST: 400,
+    UNAUTHORIZED: 401,
+    FORBIDDEN: 403,
+    NOT_FOUND: 404,
+    CONFLICT: 409,
+    PAYLOAD_TOO_LARGE: 413,
+    TOO_MANY_REQUESTS: 429,
+    INTERNAL_SERVER_ERROR: 500
+});
+
+/**
+ * Base response function with consistent formatting
+ * @param {Object} res - Express response object
+ * @param {number} status - HTTP status code
+ * @param {Object} data - Response data
+ */
+const sendResponse = (res, status, data) => {
+    // Set security headers
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    
+    res.status(status).json(data);
 };
 
-// Responds with 400 bad request and the supplied error message/fix
-const responseBadRequest = (res, errorMessage, errorFix) => {
-  basicResponse(res, 400, {
-    success: false,
-    error: {
-      message: errorMessage,
-      fix: errorFix,
-    },
-  });
+/**
+ * Success response helper
+ * @param {Object} res - Express response object
+ * @param {Object} data - Success data
+ * @param {string} message - Success message
+ */
+const sendSuccess = (res, data = {}, message = 'Success') => {
+    sendResponse(res, HTTP_STATUS.OK, {
+        success: true,
+        message,
+        data,
+        timestamp: new Date().toISOString()
+    });
 };
 
-// Responds with 401 unauthorized and the supplied error message/fix
-const responseUnauthorized = (res, errorMessage, errorFix) => {
-  basicResponse(res, 401, {
-    success: false,
-    error: {
-      message: errorMessage,
-      fix: errorFix,
-    },
-  });
+/**
+ * Error response helper
+ * @param {Object} res - Express response object
+ * @param {number} status - HTTP status code
+ * @param {string} message - Error message
+ * @param {string} fix - Suggested fix
+ * @param {string} code - Error code
+ */
+const sendError = (res, status, message, fix = null, code = null) => {
+    const errorResponse = {
+        success: false,
+        error: {
+            message,
+            code,
+            timestamp: new Date().toISOString()
+        }
+    };
+    
+    if (fix) {
+        errorResponse.error.fix = fix;
+    }
+    
+    sendResponse(res, status, errorResponse);
 };
 
-// Responds with empty key error
+// Authentication errors
 const responseEmptyKey = (res) => {
-  responseBadRequest(res, "Key is empty.", "Submit a key.");
+    sendError(
+        res, 
+        HTTP_STATUS.BAD_REQUEST, 
+        "API key is required", 
+        "Provide a valid API key in the request",
+        "EMPTY_KEY"
+    );
 };
 
-// Responds with invalid key error
 const responseInvalidKey = (res) => {
-  responseUnauthorized(res, "Key is invalid.", "Submit a valid key.");
+    sendError(
+        res, 
+        HTTP_STATUS.UNAUTHORIZED, 
+        "Invalid API key", 
+        "Provide a valid API key",
+        "INVALID_KEY"
+    );
 };
 
-// Responds with no uploaded file error
+// File upload errors
 const responseNoFileUploaded = (res) => {
-  responseBadRequest(res, "No file was uploaded.", "Upload a file.");
+    sendError(
+        res, 
+        HTTP_STATUS.BAD_REQUEST, 
+        "No file was uploaded", 
+        "Select and upload a file",
+        "NO_FILE"
+    );
 };
 
-// Responds with invalid extension error
 const responseInvalidFileExtension = (res) => {
-  responseBadRequest(
-    res,
-    "Invalid file extension.",
-    "Upload a file with a valid extension."
-  );
-};
-
-// Responds with a uploaded response
-const responseUploaded = (res, url, deleteUrl) => {
-  basicResponse(res, 200, {
-    success: true,
-    file: {
-      url: url,
-      delete_url: deleteUrl,
-    },
-  });
-};
-
-// Responds with deleted response
-const responseDeleted = (res, fileName) => {
-  basicResponse(res, 200, {
-    success: true,
-    message: "Deleted file " + fileName,
-  });
-};
-
-// Responds with a file does not exists error
-const responseFileDoesntExists = (res) => {
-  responseBadRequest(
-    res,
-    "The file does not exists.",
-    "Submit a existing file name."
-  );
-};
-
-// Responds with a file name is empty error
-const responseFileNameIsEmpty = (res) => {
-  responseBadRequest(res, "File name is empty.", "Provide a file name.");
+    sendError(
+        res, 
+        HTTP_STATUS.BAD_REQUEST, 
+        "Invalid file extension", 
+        "Upload a file with an allowed extension",
+        "INVALID_EXTENSION"
+    );
 };
 
 const responseFileTooLarge = (res) => {
-  responseBadRequest(
-    res,
-    "File exceeds size limit.",
-    "Upload a smaller file or contact administrator."
-  );
+    sendError(
+        res, 
+        HTTP_STATUS.PAYLOAD_TOO_LARGE, 
+        "File exceeds size limit", 
+        "Upload a smaller file or contact administrator",
+        "FILE_TOO_LARGE"
+    );
 };
 
-module.exports.emptyKey = responseEmptyKey;
-module.exports.invalidKey = responseInvalidKey;
-module.exports.noFileUploaded = responseNoFileUploaded;
-module.exports.invalidFileExtension = responseInvalidFileExtension;
-module.exports.uploaded = responseUploaded;
-module.exports.deleted = responseDeleted;
-module.exports.fileDoesNotExists = responseFileDoesntExists;
-module.exports.fileNameIsEmpty = responseFileNameIsEmpty;
-module.exports.fileTooLarge = responseFileTooLarge;
+// File management errors
+const responseFileDoesntExists = (res) => {
+    sendError(
+        res, 
+        HTTP_STATUS.NOT_FOUND, 
+        "File not found", 
+        "Verify the filename and try again",
+        "FILE_NOT_FOUND"
+    );
+};
+
+const responseFileNameIsEmpty = (res) => {
+    sendError(
+        res, 
+        HTTP_STATUS.BAD_REQUEST, 
+        "Filename is required", 
+        "Provide a valid filename",
+        "EMPTY_FILENAME"
+    );
+};
+
+// Success responses
+const responseUploaded = (res, fileUrl, deleteUrl, metadata = {}) => {
+    const responseData = {
+        file: {
+            url: fileUrl,
+            delete_url: deleteUrl,
+            ...metadata
+        }
+    };
+    
+    sendSuccess(res, responseData, "File uploaded successfully");
+};
+
+const responseDeleted = (res, fileName) => {
+    sendSuccess(res, { filename: fileName }, `File '${fileName}' deleted successfully`);
+};
+
+// Rate limiting response
+const responseRateLimited = (res, retryAfter = null) => {
+    if (retryAfter) {
+        res.setHeader('Retry-After', retryAfter);
+    }
+    
+    sendError(
+        res, 
+        HTTP_STATUS.TOO_MANY_REQUESTS, 
+        "Too many requests", 
+        "Please wait before making more requests",
+        "RATE_LIMITED"
+    );
+};
+
+// Server error response
+const responseServerError = (res, message = "Internal server error") => {
+    sendError(
+        res, 
+        HTTP_STATUS.INTERNAL_SERVER_ERROR, 
+        message, 
+        "Please try again later or contact support",
+        "SERVER_ERROR"
+    );
+};
+
+// Validation error response
+const responseValidationError = (res, errors = []) => {
+    sendError(
+        res, 
+        HTTP_STATUS.BAD_REQUEST, 
+        "Validation failed", 
+        "Fix the validation errors and try again",
+        "VALIDATION_ERROR"
+    );
+};
+
+// Export all response functions
+module.exports = {
+    // Core functions
+    sendResponse,
+    sendSuccess,
+    sendError,
+    
+    // Authentication
+    emptyKey: responseEmptyKey,
+    invalidKey: responseInvalidKey,
+    
+    // File upload
+    noFileUploaded: responseNoFileUploaded,
+    invalidFileExtension: responseInvalidFileExtension,
+    fileTooLarge: responseFileTooLarge,
+    uploaded: responseUploaded,
+    
+    // File management
+    fileDoesNotExists: responseFileDoesntExists,
+    fileNameIsEmpty: responseFileNameIsEmpty,
+    deleted: responseDeleted,
+    
+    // Additional responses
+    rateLimited: responseRateLimited,
+    serverError: responseServerError,
+    validationError: responseValidationError,
+    
+    // Constants
+    HTTP_STATUS
+};
