@@ -10,8 +10,13 @@ for (const username in config.keys) {
     const key = config.keys[username];
     if (key && typeof key === 'string') {
         keyToUsername.set(key, username);
+        logger.debug(`Initialized key mapping for user: ${username} (key: ${key.substr(0, 3)}...)`);
+    } else {
+        logger.warn(`Invalid key for user ${username}: ${typeof key}`);
     }
 }
+
+logger.info(`Initialized ${keyToUsername.size} API key mappings`);
 
 /**
  * Validates API key from various sources
@@ -21,25 +26,30 @@ for (const username in config.keys) {
 function extractApiKey(req) {
     // 1. Try to get from query parameters (for GET requests or URL params)
     if (req.query?.key) {
+        logger.debug(`extractApiKey: Found key in query params`);
         return req.query.key;
     }
     
     // 2. Try to get from body (for parsed form data)
     if (req.body?.key) {
+        logger.debug(`extractApiKey: Found key in body`);
         return req.body.key;
     }
     
     // 3. Try to get from headers (some clients might send it there)
     if (req.headers['x-api-key']) {
+        logger.debug(`extractApiKey: Found key in x-api-key header`);
         return req.headers['x-api-key'];
     }
     
     // 4. Try Authorization header (Bearer token format)
     const authHeader = req.headers.authorization;
     if (authHeader && authHeader.startsWith('Bearer ')) {
+        logger.debug(`extractApiKey: Found key in Authorization header`);
         return authHeader.substring(7);
     }
     
+    logger.debug(`extractApiKey: No key found in any location`);
     return null;
 }
 
@@ -50,10 +60,21 @@ function extractApiKey(req) {
  */
 function validateApiKey(key) {
     if (!key || typeof key !== 'string') {
+        logger.debug(`validateApiKey: Invalid key type or empty key`);
         return null;
     }
     
-    return keyToUsername.get(key) || null;
+    const username = keyToUsername.get(key);
+    logger.debug(`validateApiKey: Key lookup result: ${username || 'not found'} (map size: ${keyToUsername.size})`);
+    
+    // Debug: Show first few characters of all keys for comparison
+    if (!username) {
+        const allKeys = Array.from(keyToUsername.keys()).map(k => k.substr(0, 10) + '...');
+        logger.debug(`validateApiKey: Available keys: ${allKeys.join(', ')}`);
+        logger.debug(`validateApiKey: Looking for key: ${key.substr(0, 10)}...`);
+    }
+    
+    return username || null;
 }
 
 /**
@@ -66,6 +87,7 @@ module.exports.keyRequired = function (req, res, next) {
 
         // Extract API key from request
         const key = extractApiKey(req);
+        logger.debug(`keyRequired middleware: Extracted key: ${key ? key.substr(0, 3) + '...' : 'none'} for ${req.method} ${req.path}`);
         
         // Handle multipart forms that haven't been parsed yet
         if (!key && req.headers['content-type']?.includes('multipart/form-data')) {
@@ -77,20 +99,22 @@ module.exports.keyRequired = function (req, res, next) {
 
         // If no key was found through any method
         if (!key) {
-            logger.auth('No API key provided in request');
+            logger.info('No API key provided in request');
             return response.emptyKey(res);
         }
 
         // Validate key length (basic security check)
         if (key.length < 10) {
-            logger.auth(`API key too short: ${key.substr(0, 3)}...`);
+            logger.info(`API key too short: ${key.substr(0, 3)}...`);
             return response.invalidKey(res);
         }
 
         // Check if key is registered
         const username = validateApiKey(key);
+        logger.debug(`keyRequired middleware: Key validation result: ${username || 'failed'}`);
+        
         if (!username) {
-            logger.auth(`Failed authentication with key ${key.substr(0, 3)}...`);
+            logger.info(`Failed authentication with key ${key.substr(0, 3)}...`);
             return response.invalidKey(res);
         }
 
@@ -99,11 +123,12 @@ module.exports.keyRequired = function (req, res, next) {
         req.locals.username = username;
         req.locals.fullKey = key; // Store full key for later use if needed
         
-        logger.auth(`Successful authentication with key ${req.locals.shortKey} (${username})`);
+        logger.info(`Successful authentication with key ${req.locals.shortKey} (${username})`);
         next();
         
     } catch (error) {
         logger.error(`Authentication middleware error: ${error.message}`);
+        logger.error(`Stack trace: ${error.stack}`);
         return response.invalidKey(res);
     }
 };
@@ -126,9 +151,9 @@ module.exports.keyOptional = function (req, res, next) {
                 req.locals.shortKey = key.substr(0, 3) + '...';
                 req.locals.username = username;
                 req.locals.fullKey = key;
-                logger.auth(`Optional authentication successful with key ${req.locals.shortKey} (${username})`);
+                logger.info(`Optional authentication successful with key ${req.locals.shortKey} (${username})`);
             } else {
-                logger.auth(`Optional authentication failed with key ${key.substr(0, 3)}...`);
+                logger.info(`Optional authentication failed with key ${key.substr(0, 3)}...`);
             }
         }
         

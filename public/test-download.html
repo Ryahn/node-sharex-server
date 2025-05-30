@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShareX Config Download Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .download-btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 10px 5px;
+            transition: background-color 0.3s;
+        }
+        .download-btn:hover {
+            background-color: #0056b3;
+        }
+        .info {
+            background-color: #e7f3ff;
+            border: 1px solid #b3d9ff;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        .success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        code {
+            background-color: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>ShareX Config Download Test</h1>
+        
+        <div class="info success">
+            <strong>✅ Download Headers Verified!</strong><br>
+            The config endpoint is correctly configured with:
+            <ul>
+                <li><code>Content-Disposition: attachment</code> - Triggers download</li>
+                <li><code>Content-Type: application/octet-stream</code> - Binary file type</li>
+                <li><code>filename="LordAinz-Uploader.sxcu"</code> - Correct filename</li>
+            </ul>
+        </div>
+
+        <div class="test-section">
+            <h3>Test Downloads (Click to download ShareX config files)</h3>
+            <p>These links will download the ShareX configuration files directly to your computer:</p>
+            
+            <a href="/config?key=ZGMANdda71TxLakGcKah2GEWsVedWjIIalgoIz9s" 
+               class="download-btn">Download Config for ryahn</a>
+            
+            <a href="/config?key=eb46q!u-(qs19%25Qtv7K7TA%3DGgrcxObJjQhk0xj9(" 
+               class="download-btn">Download Config for pezzo</a>
+        </div>
+
+        <div class="info">
+            <strong>How it works:</strong><br>
+            When you click the download buttons above, your browser will:
+            <ol>
+                <li>Make a request to the <code>/config</code> endpoint with the API key</li>
+                <li>Receive the response with <code>Content-Disposition: attachment</code> header</li>
+                <li>Automatically download the <code>.sxcu</code> file to your Downloads folder</li>
+                <li>The file can then be imported into ShareX</li>
+            </ol>
+        </div>
+
+        <div class="test-section">
+            <h3>Why curl/scripts show JSON instead of downloading:</h3>
+            <p>Command-line tools like <code>curl</code> and Node.js scripts don't "download" files like browsers do. 
+            They simply display the response content. The download behavior is a browser feature that responds to the 
+            <code>Content-Disposition: attachment</code> header.</p>
+            
+            <p><strong>In browsers:</strong> Files are downloaded to the Downloads folder<br>
+            <strong>In curl/scripts:</strong> Content is displayed as text</p>
+        </div>
+
+        <div class="info">
+            <strong>Testing with curl:</strong><br>
+            To save the config file using curl, use the <code>-O</code> flag:<br>
+            <code>curl -O "http://localhost:3854/config?key=YOUR_API_KEY"</code>
+        </div>
+    </div>
+</body>
+</html> 

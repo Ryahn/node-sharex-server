@@ -247,7 +247,7 @@ router.post(
         if (key) {
           const username = middleware.keyToUsername[key];
           if (!username) {
-            logger.auth(`Failed authentication with key ${key.substr(0, 3)}...`);
+            logger.info(`Failed authentication with key ${key.substr(0, 3)}...`);
             return response.invalidKey(res);
           }
           
@@ -255,7 +255,7 @@ router.post(
           req.locals.shortKey = key.substr(0, 3) + '...';
           req.locals.username = username;
         } else {
-          logger.auth('No key provided in request body');
+          logger.info('No key provided in request body');
           return response.emptyKey(res);
         }
       }
@@ -361,14 +361,43 @@ router.get("/delete", middleware.keyRequired, async function (req, res) {
 /**
  * Enhanced config route with better validation
  */
-router.get("/config", middleware.keyRequired, function (req, res) {
+router.get("/config.sxcu", middleware.keyRequired, function (req, res) {
   try {
-    if (!req.locals || !req.locals.username) {
+    // Double-check authentication and get username
+    let username = req.locals?.username;
+    
+    // If username is not set, try to get it from the key directly
+    if (!username) {
+      const key = req.query.key || req.headers['x-api-key'] || req.headers.authorization?.substring(7);
+      logger.debug(`Config route: No username in locals, trying key: ${key ? key.substr(0, 3) + '...' : 'none'}`);
+      
+      if (key) {
+        username = middleware.validateApiKey(key);
+        logger.debug(`Config route: Key validation result: ${username || 'failed'}`);
+        
+        if (username) {
+          req.locals = req.locals || {};
+          req.locals.username = username;
+          req.locals.shortKey = key.substr(0, 3) + '...';
+        }
+      }
+    }
+    
+    if (!username) {
+      logger.info('Config request without valid username');
       return response.invalidKey(res);
     }
 
-    const userKey = config.keys[req.locals.username];
+    // Verify the username exists in config
+    if (!config.keys || typeof config.keys !== 'object') {
+      logger.error('Config keys not properly configured');
+      return response.serverError(res, 'Server configuration error');
+    }
+
+    const userKey = config.keys[username];
     if (!userKey) {
+      logger.info(`Config request for unknown user: ${username}`);
+      logger.debug(`Available users: ${Object.keys(config.keys).join(', ')}`);
       return response.invalidKey(res);
     }
 
@@ -387,14 +416,21 @@ router.get("/config", middleware.keyRequired, function (req, res) {
     };
 
     const configJson = JSON.stringify(sharexConfig, null, 2);
-    const filename = `${config.name}-Uploader.sxcu`;
+    const sanitizedName = (config.name || 'ShareX').replace(/[^a-zA-Z0-9-_]/g, '_');
+    const filename = `${sanitizedName}-Uploader.sxcu`;
+    
+    const buffer = Buffer.from(configJson, 'utf8');
 
-    res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
-    res.setHeader("Content-Type", "application/json");
-    res.setHeader("Content-Length", Buffer.byteLength(configJson, 'utf8'));
-    res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+    res.writeHead(200, {
+      'Content-Type': 'application/force-download',
+      'Content-Disposition': `attachment; filename="${filename}"`,
+      'Content-Length': buffer.length,
+    });
 
-    res.send(configJson);
+    logger.info(`Generated ShareX config for user: ${username}`);
+    logger.debug(`Download filename: ${filename}`);
+    
+    res.end(buffer);
     
   } catch (error) {
     logger.error(`Config generation error: ${error.message}`);

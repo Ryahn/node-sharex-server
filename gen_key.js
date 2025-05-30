@@ -5,7 +5,7 @@ const path = require('path');
 // Generate a secure random key
 function generateKey(length = 40) {
     // Characters to use in the key (alphanumeric + some special characters)
-    const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_=+';
+    const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     let key = '';
     
     // Generate cryptographically secure random bytes
