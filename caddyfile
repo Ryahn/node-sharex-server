@@ -1,0 +1,22 @@
+YOUR_DOMAIN_HERE {
+	reverse_proxy 127.0.0.1:3854 {
+		header_up Host {host}
+		header_up X-Real-IP {remote_host}
+		header_up X-Forwarded-For {remote_host}
+		header_up Range {header.Range}
+		header_up If-Range {header.If-Range}
+		header_down -Content-Disposition
+
+		# Timeout settings
+		transport http {
+			dial_timeout 300s
+			response_header_timeout 300s
+			read_timeout 300s
+		}
+	}
+
+	# File upload size limit
+	request_body {
+		max_size 5GB
+	}
+}
