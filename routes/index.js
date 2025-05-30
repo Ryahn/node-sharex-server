@@ -412,7 +412,7 @@ router.get("/config.sxcu", middleware.keyRequired, function (req, res) {
         key: userKey,
       },
       FileFormName: "file",
-      URL: "{json:file.url}",
+      URL: "{json:data.file.url}",
     };
 
     const configJson = JSON.stringify(sharexConfig, null, 2);
